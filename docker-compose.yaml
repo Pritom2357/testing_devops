@@ -3,9 +3,9 @@ services:
     image: postgres:16-alpine
     container_name: frostbyte_db
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin123
-      POSTGRES_DB: frostbite_warehouse
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin123}
+      POSTGRES_DB: ${POSTGRES_DB:-frostbite_warehouse}
     volumes:
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
       - postgres_data:/var/lib/postgresql/data
@@ -27,9 +27,9 @@ services:
     environment:
       DB_HOST: db
       DB_PORT: 5432
-      DB_NAME: frostbite_warehouse
-      DB_USER: admin
-      DB_PASSWORD: admin123
+      DB_NAME: ${DB_NAME:-frostbite_warehouse}
+      DB_USER: ${DB_USER:-admin}
+      DB_PASSWORD: ${DB_PASSWORD:-admin123}
     depends_on:
       db:
         condition: service_healthy

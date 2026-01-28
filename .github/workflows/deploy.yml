@@ -1,0 +1,50 @@
+name: Deploy to Digital Ocean
+
+on:
+  push:
+    branches:
+      - main
+  workflow_run:
+    workflows: ["Automate Tests"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: root
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script: |
+            mkdir -p /root/frostbite-warehouse
+            cd /root/frostbite-warehouse
+            
+            if [ ! -d .git ]; then
+              rm -rf *
+              git clone https://github.com/Pritom2357/frostbite-warehouse.git .
+            fi
+            
+            git pull origin main
+            
+            cat > .env << 'EOF'
+            DB_HOST=db
+            DB_PORT=5432
+            DB_NAME=frostbite_warehouse
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            POSTGRES_USER=${{ secrets.DB_USER }}
+            POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}
+            POSTGRES_DB=frostbite_warehouse
+            EOF
+            
+            docker compose up -d --build
