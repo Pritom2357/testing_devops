@@ -8,6 +8,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     
     steps:
       - name: Checkout Code
@@ -21,17 +24,19 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            if [ -d "/root/frostbite-warehouse/.git" ]; then
-              echo "Existing repository found. Pulling updates..."
-              cd /root/frostbite-warehouse
-              git pull origin main
-            else
-              echo "No valid repository found. Cloning fresh..."
+            # Clean up logic: Remove if exists (to avoid conflicts), then clone fresh
+            if [ -d "/root/frostbite-warehouse" ]; then
+              echo "Removing existing directory..."
               rm -rf /root/frostbite-warehouse
-              git clone git@github.com:Pritom2357/frostbite-warehouse.git /root/frostbite-warehouse
-              cd /root/frostbite-warehouse
             fi
             
+            echo "Cloning fresh repository..."
+            # Using HTTPS with GITHUB_TOKEN to avoid SSH key management on the server
+            git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Pritom2357/frostbite-warehouse.git /root/frostbite-warehouse
+            
+            cd /root/frostbite-warehouse
+            
+            echo "Setting up environment variables..."
             cat > .env << 'EOF'
             DB_HOST=db
             DB_PORT=5432
@@ -43,4 +48,5 @@ jobs:
             POSTGRES_DB=frostbite_warehouse
             EOF
             
+            echo "Starting services..."
             docker compose up -d --build
