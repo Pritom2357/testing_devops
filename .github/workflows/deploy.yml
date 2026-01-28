@@ -30,6 +30,7 @@ jobs:
             cd /root/frostbite-warehouse
             
             if [ ! -d .git ]; then
+              rm -rf /root/frostbite-warehouse/*
               git clone git@github.com:Pritom2357/frostbite-warehouse.git .
             else
               git pull origin main
