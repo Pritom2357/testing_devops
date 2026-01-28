@@ -21,7 +21,7 @@ app.get('/', async (req, res) => {
     const result = await pool.query('SELECT NOW()');
     res.json({
       status: 'success',
-      message: 'FrostByte Logistics Server Running',
+      message: 'FrostByte Logistics Server Running and Arka gay',
       timestamp: result.rows[0].now,
       database: 'connected'
     });
